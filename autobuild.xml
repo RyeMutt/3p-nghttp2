@@ -16,6 +16,8 @@ Copyright (c) 2012, 2014, 2015, 2016 nghttp2 contributors</string>
       <string>LICENSES/nghttp2.txt</string>
       <key>name</key>
       <string>nghttp2</string>
+      <key>use_scm_version</key>
+      <boolean>true</boolean>
       <key>platforms</key>
       <map>
         <key>common</key>
@@ -130,8 +132,6 @@ Copyright (c) 2012, 2014, 2015, 2016 nghttp2 contributors</string>
       <string>nghttp2</string>
       <key>source_type</key>
       <string>hg</string>
-      <key>version_file</key>
-      <string>VERSION.txt</string>
     </map>
     <key>type</key>
     <string>autobuild</string>

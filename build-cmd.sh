@@ -72,19 +72,18 @@ pushd "$top/nghttp2"
         darwin*)
             opts="${TARGET_OPTS:--arch $AUTOBUILD_CONFIGURE_ARCH $LL_BUILD_RELEASE}"
 
-##          # Release configure and build
-##          ./configure --enable-lib-only CFLAGS="$opts" CXXFLAGS="$opts"
-##          make
-##          make check
-
-            cmake . -DCMAKE_C_FLAGS:STRING="$opts" \
-                -DCMAKE_CXX_FLAGS:STRING="$opts" \
-                -DCMAKE_INSTALL_PREFIX="$stage"
-
-            cmake --build . --config Release
+            # Release configure and build
+            autoreconf -i
+            automake
+            autoconf
+            ./configure --enable-lib-only CFLAGS="$opts" CXXFLAGS="$opts"
+            make -j$(nproc)
+            make check
 
             mkdir -p "$stage/lib/release"
-            mv "$top/nghttp2/lib"/libnghttp2*.dylib "$stage/lib/release/"
+            # ?! Unclear why this build tucks built libraries into a hidden
+            # .libs directory.
+            mv "$top/nghttp2/lib/.libs/"/libnghttp2*.dylib "$stage/lib/release/"
 
             # SL-807: fix_dylib_id doesn't really handle symlinks, even though
             # it's coded to try to do so. Chase the multiple levels of
@@ -95,35 +94,12 @@ pushd "$top/nghttp2"
                 do dylib="$(readlink "$dylib")"
                 done
                 fix_dylib_id "$dylib"
-
-                CONFIG_FILE="$build_secrets_checkout/code-signing-osx/config.sh"
-                if [ -f "$CONFIG_FILE" ]; then
-                    source $CONFIG_FILE
-                    codesign --force --timestamp --sign "$APPLE_SIGNATURE" "$dylib"
-                else 
-                    echo "No config file found; skipping codesign."
-                fi
             popd
 
 #            make distclean
         ;;
 
         linux*)
-            # Linux build environment at Linden comes pre-polluted with stuff that can
-            # seriously damage 3rd-party builds.  Environmental garbage you can expect
-            # includes:
-            #
-            #    DISTCC_POTENTIAL_HOSTS     arch           root        CXXFLAGS
-            #    DISTCC_LOCATION            top            branch      CC
-            #    DISTCC_HOSTS               build_name     suffix      CXX
-            #    LSDISTCC_ARGS              repo           prefix      CFLAGS
-            #    cxx_version                AUTOBUILD      SIGN        CPPFLAGS
-            #
-            # So, clear out bits that shouldn't affect our configure-directed build
-            # but which do nonetheless.
-            #
-            # unset DISTCC_HOSTS CC CXX CFLAGS CPPFLAGS CXXFLAGS
-
             # Default target per --address-size
             opts="${TARGET_OPTS:--m$AUTOBUILD_ADDRSIZE $LL_BUILD_RELEASE}"
 
@@ -137,8 +113,11 @@ pushd "$top/nghttp2"
             fi
 
             # Release configure and build
+            autoreconf -i
+            automake
+            autoconf
             ./configure --enable-lib-only CFLAGS="$opts" CXXFLAGS="$opts"
-            make
+            make -j$(nproc)
             make check
 
             mkdir -p "$stage/lib/release"
