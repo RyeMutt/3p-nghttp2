@@ -27,6 +27,9 @@ source_environment_tempfile="$stage/source_environment.sh"
 "$autobuild" source_environment > "$source_environment_tempfile"
 . "$source_environment_tempfile"
 
+# remove_cxxstd
+source "$(dirname "$AUTOBUILD_VARIABLES_FILE")/functions"
+
 NGHTTP2_VERSION_HEADER_DIR="$top/nghttp2/lib/includes/nghttp2"
 build=${AUTOBUILD_BUILD_ID:=0}
 
@@ -71,12 +74,13 @@ pushd "$top/nghttp2"
 
         darwin*)
             opts="${TARGET_OPTS:--arch $AUTOBUILD_CONFIGURE_ARCH $LL_BUILD_RELEASE}"
+            plainopts="$(remove_cxxstd $opts)"
 
             # Release configure and build
             autoreconf -i
             automake
             autoconf
-            ./configure --enable-lib-only CFLAGS="$opts" CXXFLAGS="$opts"
+            ./configure --enable-lib-only CFLAGS="$plainopts" CXXFLAGS="$opts"
             make -j$(nproc)
             make check
 
@@ -102,6 +106,7 @@ pushd "$top/nghttp2"
         linux*)
             # Default target per --address-size
             opts="${TARGET_OPTS:--m$AUTOBUILD_ADDRSIZE $LL_BUILD_RELEASE}"
+            plainopts="$(remove_cxxstd $opts)"
 
             # Handle any deliberate platform targeting
             if [ -z "${TARGET_CPPFLAGS:-}" ]; then
@@ -116,7 +121,7 @@ pushd "$top/nghttp2"
             autoreconf -i
             automake
             autoconf
-            ./configure --enable-lib-only CFLAGS="$opts" CXXFLAGS="$opts"
+            ./configure --enable-lib-only CFLAGS="$plainopts" CXXFLAGS="$opts"
             make -j$(nproc)
             make check
 
