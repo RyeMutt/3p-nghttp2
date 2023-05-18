@@ -61,7 +61,8 @@ pushd "$top/nghttp2"
             packages="$(cygpath -m "$stage/packages")"
             load_vsvars
 
-            cmake . -G"$AUTOBUILD_WIN_CMAKE_GEN" -DCMAKE_C_FLAGS:STRING="$LL_BUILD_RELEASE" \
+            cmake . -G"$AUTOBUILD_WIN_CMAKE_GEN" -A"$AUTOBUILD_WIN_VSPLATFORM" \
+                -DCMAKE_C_FLAGS:STRING="$LL_BUILD_RELEASE" \
                 -DCMAKE_CXX_FLAGS:STRING="$LL_BUILD_RELEASE" \
                 -DCMAKE_INSTALL_PREFIX="$(cygpath -m "$stage")"
 
